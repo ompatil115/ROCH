@@ -1,4 +1,4 @@
-# ROCH (Car)
+# ROCH Car
 
 A robotic vehicle built on a Raspberry Pi and Arduino, supporting browser and glove control, RGB lighting, and ultrasonic distance sensing over a local network. Built as a first full-stack embedded systems project, from protocol design through firmware, backend, and interface.
 
