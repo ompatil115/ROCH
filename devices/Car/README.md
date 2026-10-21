@@ -7,10 +7,12 @@ The car has two versions:
 - **V1:** browser-controlled movement, lighting, and 180° distance scanning.
 - **V1.5:** a firmware and protocol update that adds glove driving through the Raspberry Pi, with proximity telemetry returned to the glove.
 
+This folder holds the car's firmware, documentation, and media. The backend and browser interface are shared across all ROCH devices and live in [`backend/`](../../backend/).
+
 ## Overview
 
 - **Firmware (C++, Arduino Uno):** motor, lighting, and ultrasonic sensor control (V1 also drove a scanning servo)
-- **Backend (Python/Flask, Raspberry Pi):** serial-to-HTTP bridge, multithreaded command handling
+- **Backend (Python/Flask, Raspberry Pi):** serial-to-HTTP bridge and multithreaded command handling, provided by the shared backend through the car's own routes
 - **Interface (HTML/CSS/JS):** browser-based control panel with a color picker, a directional movement pad, and a radar-style scan graph (V1)
 
 See [`docs/architecture.md`](docs/architecture.md) for system design and [`docs/protocol.md`](docs/protocol.md) for the full command specification for both V1 and V1.5.
@@ -53,12 +55,8 @@ Full command specification for both V1 and V1.5 is in [`docs/protocol.md`](docs/
 3. Upload to an Arduino Uno wired per the pin map in `docs/architecture.md`
 
 **Backend**
-```bash
-cd backend
-pip install -r requirements.txt
-python3 app.py
-```
-Connect the Arduino to the Pi via USB, then visit `http://<pi-ip>:5000` from any device on the same network.
+
+Connect the Arduino to the Pi via USB, then start the shared backend as described in the [root README](../../README.md#backend). Visit `http://<pi-ip>:5000` from any device on the same network.
 
 ## Version History
 
@@ -67,7 +65,7 @@ Connect the Arduino to the Pi via USB, then visit `http://<pi-ip>:5000` from any
 | V1 | Browser control, lighting, 180° scanning | `car-v1.0`, `hud-v1.0` |
 | V1.5 | Glove driving, wheel-based protocol, proximity telemetry | current |
 
-To view the V1 state of the repository, run `git checkout car-v1.0`.
+To view the V1 state of the repository, run `git checkout car-v1.0`. Because tags capture the whole repository, this also shows the V1 backend and folder layout.
 
 ## Status
 
