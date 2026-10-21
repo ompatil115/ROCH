@@ -50,7 +50,7 @@ Full command specification for both V1 and V1.5 is in [`docs/protocol.md`](docs/
 ## Setup
 
 **Firmware**
-1. Open the firmware sketch for your version in `firmware/` (`Car_V1.ino` or `Car_V1.5.ino`) in the Arduino IDE
+1. Open the firmware sketch for your version in [`firmware/`](firmware/) (`Car_V1.ino` or `Car_V1.5.ino`) in the Arduino IDE
 2. Install the required libraries (V1 also needs `Servo`)
 3. Upload to an Arduino Uno wired per the pin map in `docs/architecture.md`
 
