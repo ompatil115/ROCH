@@ -1,4 +1,4 @@
-# Control Glove (ESP32-C3)
+# ROCH Glove
 
 A wearable controller built around an ESP32-C3 that drives ROCH devices from hand input. It reads a joystick and wrist orientation, sends drive commands through the shared backend, and gives haptic feedback from the car's proximity data.
 
@@ -45,16 +45,11 @@ A first-generation scheme mapped wrist pitch and roll directly to wheel speed. L
 
 ## Setup
 
-**Firmware (V1, serial)**
-1. Open [`firmware/Glove_V1/Glove_V1.ino`](firmware/Glove_V1/Glove_V1.ino) in the Arduino IDE
+**Firmware**
+1. Open the sketch for your version in [`firmware/`](firmware/) (`Glove_V1/Glove_V1.ino` for USB serial, or `Glove_V1.5/Glove_V1.5.ino` for Wi-Fi) in the Arduino IDE
 2. Install the ESP32 board package and the libraries for the IMU and joystick module
-3. Upload to the ESP32-C3 and connect it to the Raspberry Pi over USB
-
-**Firmware (V1.5, Wi-Fi)**
-1. Open [`firmware/Glove_V1.5/Glove_V1.5.ino`](firmware/Glove_V1.5/Glove_V1.5.ino) in the Arduino IDE
-2. Install the same board package and libraries
-3. Copy `secrets.h.example` to `secrets.h` in the same folder and fill in your Wi-Fi credentials and the backend address. `secrets.h` is git-ignored and must not be committed
-4. Upload to the ESP32-C3
+3. V1.5 only: copy `secrets.h.example` to `secrets.h` in the same folder and fill in your Wi-Fi credentials and the backend address. `secrets.h` is git-ignored and must not be committed
+4. Upload to the ESP32-C3 (V1: also connect it to the Raspberry Pi over USB)
 
 **Backend**
 
