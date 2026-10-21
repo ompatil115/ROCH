@@ -46,6 +46,6 @@ V1 used LEGO for the chassis, a deliberate rapid-prototyping choice to validate 
 - **Full system demo (browser control → robot response):** https://youtu.be/HuvUpwN8BuI
 - **Modular design:** https://youtu.be/toOqbU9Gd-k
 - **Modular design breakdown:** https://youtu.be/CyCH8XhwyrI
-- **Physical build:** [`media/robot-photo.jpg`](media/robot-image.jpg)
-- **Schematic:** [`media/schematic.png`](media/schematic.png)
+- **Physical build:** [`media/robot-image.pdf`](media/robot-image.pdf)
+- **Schematic:** [`media/schematic.pdf`](media/schematic.pdf)
   ([KiCad source](media/Car_V1.kicad_sch))
