@@ -10,7 +10,7 @@ The glove has two versions, V1 (USB serial) and V1.5 (Wi-Fi HTTP/JSON). Both run
 - *Wrist gesture (secondary):* holding the joystick button captures the current wrist angle as zero (press-to-zero). Rotating about 45° either way from that reference maps to pivot speed.
 - *Haptics:* vibration intensity follows the proximity data returned from the car.
 
-**Backend (Python/Flask, on Raspberry Pi)**: relays wheel commands from the glove to the car and returns car telemetry to the glove. The backend is a single Flask application shared across all ROCH devices (see [`backend/`](../../../backend/)). Glove traffic is handled under `/glove/...`, separate from the car and arm routes.
+**Backend (Python/Flask, on Raspberry Pi)**: relays wheel commands from the glove to the car and returns car telemetry to the glove. The backend is a single Flask application shared across all ROCH devices (see [`backend/`](../../../backend/)). Glove traffic is handled under /glove/car (and later /glove/arm), separate from the car and arm routes.
 
 - *V1:* a background serial reader handles the glove's USB serial link alongside the car's.
 - *V1.5:* the glove connects over Wi-Fi, so glove traffic arrives as HTTP requests carrying JSON payloads instead of serial lines.
@@ -41,9 +41,9 @@ See the schematic in [Media](#media) for the full wiring. The IMU and joystick m
 
 | Component | Connection |
 |---|---|
-| MPU-6050 IMU | I2C (SDA: [pin], SCL: [pin]) |
+| MPU-6050 IMU | I2C (SDA: 9, SCL: 8) |
 | Arduino Modulino Joystick | I2C (shared bus) |
-| Vibration motor | GPIO [pin] |
+| Vibration motor | GPIO 10 |
 
 ## Media
 
