@@ -23,7 +23,7 @@ Computation was deliberately kept off the Arduino where possible (color math, di
 Browser → HTTP → Flask → Serial → Arduino → (physical action, or serial response) → Flask (background thread) → JSON → Browser
 
 **V1.5:**
-Glove or Browser → HTTP → Flask → Serial → Arduino → (wheels and lighting)
+Glove or Browser → HTTP → Flask → Serial → Arduino → (wheels and proximity indicator LED)
 Arduino → Serial (proximity telemetry) → Flask → Glove and Browser
 
 ## V1 Hardware Constraint: PWM Pin Availability
