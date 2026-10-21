@@ -6,7 +6,7 @@ The car has two versions, V1 (browser control) and V1.5 (adds glove driving). Bo
 
 **Browser (JavaScript)**: renders the interface (light slider, movement pad, and in V1 the scan button and radar-style scan graph), computes derived values (RGB from slider position, direction and intensity from pad position), and sends commands to the backend over HTTP.
 
-**Backend (Python/Flask, on Raspberry Pi)**: mediates between the browser, the glove, and the hardware. It translates HTTP requests into serial commands and parses serial responses back into JSON for the browser.
+**Backend (Python/Flask, on Raspberry Pi)**: mediates between the browser, the glove, and the hardware. It translates HTTP requests into serial commands and parses serial responses back into JSON for the browser. The backend is a single Flask application shared across all ROCH devices (see [`backend/`](../../../backend/)). Each device has its own routes, and the car's commands are handled under `/car/...`, so the car logic does not depend on the arm or glove.
 
 - *V1:* three concurrent threads: the main Flask request handler, a background serial reader (continuously parsing scan data and watching for completion), and a watchdog that halts motor output if movement commands stop arriving.
 - *V1.5:* the watchdog moved into the Arduino firmware. The backend runs the Flask request handler plus background serial readers for the car and for glove traffic, relaying wheel commands to the car and car telemetry back to the glove.
@@ -20,11 +20,13 @@ Computation was deliberately kept off the Arduino where possible (color math, di
 ## Data flow
 
 **V1:**
-Browser → HTTP → Flask → Serial → Arduino → (physical action, or serial response) → Flask (background thread) → JSON → Browser
+Browser → HTTP → Flask (`/car/...`) → Serial → Arduino → (physical action, or serial response) → Flask (background thread) → JSON → Browser
 
 **V1.5:**
-Glove or Browser → HTTP → Flask → Serial → Arduino → (wheels and proximity indicator LED)
+Glove or Browser → HTTP → Flask (`/car/...`) → Serial → Arduino → (wheels and proximity indicator LED)
 Arduino → Serial (proximity telemetry) → Flask → Glove and Browser
+
+The same backend also serves the glove and the arm, each through its own routes. See the [root README](../../../README.md) for the full system.
 
 ## V1 Hardware Constraint: PWM Pin Availability
 
@@ -35,7 +37,7 @@ The Arduino Uno has six PWM-capable pins. Attaching the Servo library claims Tim
 
 This was a scoping decision, not a bug.
 
-   **V1.5 resolution:** the scanning servo is no longer used, so Timer1 and its PWM pins are free again and the constraint no longer applies. The blue channel was not restored; V1.5 lighting is focused on proximity indication.
+**V1.5 resolution:** the scanning servo is no longer used, so Timer1 and its PWM pins are free again and the constraint no longer applies. The blue channel was not restored; V1.5 lighting is focused on proximity indication.
 
 ## Physical Build
 
