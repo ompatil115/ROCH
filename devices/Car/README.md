@@ -27,7 +27,7 @@ See [`docs/architecture.md`](docs/architecture.md) for system design and [`docs/
 **V1.5**
 - Independent left and right wheel control for differential drive
 - Glove driving: joystick and wrist-gesture commands arrive through the Raspberry Pi
-- Proximity telemetry (distance, blocked flag, light state) returned to the glove, with a proximity warning and automatic stop
+- Proximity telemetry (distance, blocked flag, indicator color) returned to the glove, with a proximity warning and automatic stop
 - Hysteresis in the car's command processing to remove command flicker near thresholds
 - Safety watchdog moved from the Python backend into the Arduino firmware, with the same 500 ms timeout behavior
 
