@@ -1,6 +1,8 @@
 # Serial Command Protocol
 
-Communication between the Flask backend and the Arduino firmware uses plain-text commands over USB serial, one command per line, terminated with `\n`.
+Communication between the Flask backend and the car's Arduino firmware uses plain-text commands over USB serial, one command per line, terminated with `\n`.
+
+This document covers the car only. The backend is shared across ROCH devices and sends each device's commands to its own interface: the car over USB serial (this document), and the arm through the PCA9685 over I2C. Each device's protocol is documented in its own folder, so a command name only has to be unique within its device. The arm protocol is described in the [root README](../../../README.md#arm-protocol).
 
 The car has two protocol versions:
 
