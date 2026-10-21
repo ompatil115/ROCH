@@ -15,6 +15,32 @@ The project is developed in phases. Each phase delivers a milestone across four 
 
 Items described as "planned" are design decisions, not working features.
 
+## Repository Layout
+
+```text
+ROCH/
+├── backend/        shared Flask app (HTTP API and browser HUD)
+├── devices/
+│   ├── Car/        firmware, documentation, media
+│   ├── Glove/      glove firmware
+│   └── Arm/        arm controller
+└── docs/
+```
+
+Each device folder has its own documentation. See [`devices/Car/`](devices/Car/), [`devices/Glove/`](devices/Glove/), and [`devices/Arm/`](devices/Arm/).
+
+## Backend
+
+A single Flask application in [`backend/`](backend/) serves the car, the glove, and the arm, and hosts the browser HUD. Each device has its own routes (`/car/...`, `/glove/...`, `/arm/...`), so a command name only needs to be unique within its device.
+
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python app.py
+```
+
 ## Phase 1: Car V1 and HUD V1
 
 Phase 1 demonstrates end-to-end remote control and two-way communication between a browser interface and physical robotic hardware.
@@ -30,7 +56,7 @@ HUD V1 is a browser interface on the local network that sends commands to the ca
 ### System Architecture
 
 - **Browser interface:** lighting, movement, and scan controls, plus the scan graph.
-- **Raspberry Pi backend:** Python/Flask service that handles HTTP requests, manages state, and communicates over USB serial.
+- **Raspberry Pi backend:** the shared Python/Flask service (see [Backend](#backend)) that handles HTTP requests, manages state, and communicates over USB serial.
 - **Arduino firmware:** low-level control of the motors, servo, ultrasonic sensor, and lighting.
 
 ```text
@@ -48,15 +74,15 @@ Python / Flask
 Motors, Servo, Ultrasonic Sensor, Lighting
 ```
 
-See [`Robot-Car-V1/`](Robot-Car-V1/) for build documentation, firmware, backend code, and media.
+See [`devices/Car/`](devices/Car/) for build documentation, firmware, and media.
 
 ## Phase 2: Glove V1, Car V1.5, HUD V1.5
 
-Phase 2 adds a wearable control glove and updates the car and HUD to support glove driving, through both a joystick channel and a wrist-gesture channel.
+Phase 2 adds a wearable control glove and updates the car and HUD to support glove driving through both a joystick channel and a wrist-gesture channel.
 
 ### Glove V1
 
-The glove is built around an ESP32-C3 with an I2C IMU, a joystick, and a vibration motor for haptic feedback. It sends drive commands and receives car telemetry every 50 ms.
+The glove is built around an ESP32-C3 with an I2C IMU, a joystick, and a vibration motor for haptic feedback. It sends drive commands and receives car telemetry every 50 ms. See [`devices/Glove/`](devices/Glove/).
 
 **Car control scheme:**
 - **Joystick (primary):** throttle and steering using a throttle-gated mix and a squared turn curve.
@@ -80,13 +106,13 @@ The car stops its motors if no command arrives within 500 ms.
 
 ## Phase 3: Glove V2, Arm V1, HUD V2
 
-Phase 3 extends the glove to control a desk-mounted robotic arm driven directly by the Raspberry Pi through a PCA9685 servo driver, and expands the HUD to cover the arm and system health.
+Phase 3 extends the glove to control a desk-mounted robotic arm, driven directly by the Raspberry Pi through a PCA9685 servo driver and served by the same shared backend. It also expands the HUD to cover the arm and system health.
 
 **Arm V1 payload target:** 1.5 kg.
 
 ### Arm control scheme
 
-For the arm, wrist and forearm gestures are the primary control and the joystick is used for precision adjustments, the reverse of the car scheme. The same press-to-zero technique sets the reference position for gesture control.
+For the arm, wrist, and forearm gestures are the primary control, and the joystick is used for precision adjustments, the reverse of the car scheme. The same press-to-zero technique sets the reference position for gesture control.
 
 ### Arm protocol
 
@@ -101,7 +127,7 @@ Values are target servo angles in degrees. The glove converts its own range to s
 
 ### Software
 
-`Arm_V1/arm_controller.py` contains the `ArmController` class. It parses protocol strings, validates the joint count and angle range, and sets servo angles through the PCA9685. A single `execute()` call keeps the servo driver swappable, so it can later move to a microcontroller without changing the protocol. The parsing and clamping logic has been tested against simulated servos; hardware testing is pending.
+[`devices/Arm/arm_controller.py`](devices/Arm/arm_controller.py) contains the `ArmController` class. It parses protocol strings, validates the joint count and angle range, and sets servo angles through the PCA9685. A single `execute()` call keeps the servo driver swappable, so it can later move to a microcontroller without changing the protocol. The parsing and clamping logic has been tested against simulated servos; hardware testing is pending.
 
 ### HUD V2
 
