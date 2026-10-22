@@ -1,9 +1,9 @@
 //  Glove V1 Code  //
-//  Om Patil         //
-//  2026-10-21       //
+//  Om Patil       //
+//  2026-10-21     //
 
 #include <Wire.h>
-#include <Modulino.h>
+#include <Arduino_Modulino.h>
 
 #define MPU_ADDR 0x68
 #define WHO_AM_I_REG 0x75
@@ -12,17 +12,18 @@
 ModulinoJoystick joystick;
 
 int roll;
+int rollRef;
 int pivotSpeed;
 int joyX, joyY;
 bool pivotHeld;
+bool wasPivotHeld;
 int leftInten, rightInten;
 
-const int PIVOT_MIN = 45;
-const int PIVOT_MAX = 75;
-const int DEAD_ZONE = 8;
+const int PIVOT_RANGE = 45;
+const int DEAD_ZONE = 10;
 
-const int WARN = 80;
-const int STOP = 25;
+const int WARN_DIST = 80;
+const int STOP_DIST = 25;
 int dist = 400;
 int vibeInten;
 bool blocked;
@@ -40,7 +41,6 @@ void setup() {
   mpuConfirm();
   Modulino.begin();
   joystick.begin();
-  joystick.setDeadZone(DEAD_ZONE);
 }
 
 // ---------- Wheels ----------
@@ -88,21 +88,18 @@ bool readRoll() {
 }
 
 void readJoystick() {
-  if (joystick.update()) {
-    joyX = map(joystick.getX(), -127, 127, -100, 100);
-    joyY = map(joystick.getY(), -127, 127, -100, 100);
-  }
+  joystick.update();
+  joyX = joystick.getX();
+  joyY = joystick.getY();
+  if (abs(joyX) < DEAD_ZONE) joyX = 0;
+  if (abs(joyY) < DEAD_ZONE) joyY = 0;
   pivotHeld = joystick.isPressed();
 }
 
 void pivot() {
-  if (abs(roll) < PIVOT_MIN) {
-    leftInten = 0;
-    rightInten = 0;
-    return;
-  }
-  pivotSpeed = map(constrain(abs(roll), PIVOT_MIN, PIVOT_MAX), PIVOT_MIN, PIVOT_MAX, 1, 100);
-  if (roll < 0) {
+  int delta = roll - rollRef;
+  pivotSpeed = map(constrain(abs(delta), 0, PIVOT_RANGE), 0, PIVOT_RANGE, 0, 100);
+  if (delta < 0) {
     leftInten = -pivotSpeed;
     rightInten = pivotSpeed;
   } else {
@@ -112,8 +109,9 @@ void pivot() {
 }
 
 void drive() {
+  float turnFactor = abs(joyY) / 100.0;
   int outer = joyX;
-  int inner = joyX * (100 - abs(joyY)) / 100;
+  int inner = joyX * (1.0 - turnFactor * turnFactor);
 
   if (joyY < 0) {
     leftInten = inner;
@@ -135,14 +133,15 @@ void sendWheels() {
 
 void proxToVibe() {
   if (blocked) { analogWrite(DIRE, 255); }
-  else if (dist > WARN) { analogWrite(DIRE, 0); }
+  else if (dist > WARN_DIST) { analogWrite(DIRE, 0); }
   else {
-    vibeInten = map(constrain(dist, STOP, WARN), WARN, STOP, 1, 255);
+    vibeInten = map(constrain(dist, STOP_DIST, WARN_DIST), WARN_DIST, STOP_DIST, 1, 255);
     analogWrite(DIRE, vibeInten);
   }
 }
 
-bool parseProx(String cmd) {
+bool parseProx() {
+  String cmd;
   if (!cmd.startsWith("PROX:")) return false;
   int firstComma = cmd.indexOf(',');
   int secondComma = cmd.indexOf(',', firstComma + 1);
@@ -167,9 +166,16 @@ void loop() {
   readJoystick();
 
   if (pivotHeld) {
-    if (readRoll()) pivot();
-    else { leftInten = 0; rightInten = 0; }
+    if (readRoll()) {
+      if (!wasPivotHeld) rollRef = roll;
+      wasPivotHeld = true;
+      pivot();
+    } else {
+      leftInten = 0;
+      rightInten = 0;
+    }
   } else {
+    wasPivotHeld = false;
     drive();
   }
 
