@@ -13,9 +13,9 @@ The car has two versions, V1 (browser control) and V1.5 (adds glove driving). Bo
 
 **Firmware (C++, on Arduino Uno)**: executes hardware control: PWM for motors and lighting, ultrasonic distance sampling (and, in V1, servo positioning). It parses incoming serial commands and dispatches to the matching function.
 
-- *V1.5 adds:* a 500 ms command watchdog that stops the motors, proximity warning and automatic stop based on the ultrasonic sensor, hysteresis in command processing to prevent flicker near thresholds, and periodic proximity telemetry back to the backend.
+- *V1.5 adds:* a 500 ms command watchdog that stops the motors, proximity warning and automatic stop based on the ultrasonic sensor, hysteresis on the obstacle-blocked flag (stops at 25 cm, clears at 30 cm) to prevent flicker near the threshold, and periodic proximity telemetry back to the backend.
 
-Computation was deliberately kept off the Arduino where possible (color math, direction and intensity logic) to minimize firmware complexity, since the Uno also handles time-sensitive sensor timing and motor control. In V1.5, input mixing happens on the glove, so the car firmware only applies left and right wheel values.
+Computation was deliberately kept off the Arduino where possible (color math, direction and intensity logic) to minimize firmware complexity, since the Uno also handles time-sensitive sensor timing and motor control. In V1.5, input mixing happens on the glove, so the car firmware only applies the left and right wheel values it receives, including pivot and curved turns when the two values differ.
 
 ## Data flow
 

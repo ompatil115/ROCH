@@ -40,7 +40,7 @@ V1.5 replaces the V1 Move and Scan commands with a single wheel command and a pr
 ### Drive
 - `WHEELS:<left>,<right>` — left and right wheel intensity, each -100 to 100. The sign sets direction and the magnitude sets speed. `WHEELS:0,0` stops both motors.
 
-Wheel commands are sent continuously, about every 50 ms, while an input is active. Mixing of joystick and gesture input into left and right values happens on the glove or browser side, so the firmware only applies the values it receives.
+The firmware applies the two values directly: equal values drive straight, unequal values of the same sign curve, and opposite signs pivot in place. Wheel commands are sent continuously while an input is active. Mixing of joystick and gesture input into left and right values happens on the glove or browser side, so the firmware only applies the values it receives.
 
 ### Telemetry
 - `PROX:<dist>,<blocked>,<red>,<green>` — sent from the Arduino to the backend. `dist` is the forward distance in cm, `blocked` is the obstacle-blocked flag, and `red` and `green` are the current color values of the proximity indicator LED.
@@ -50,4 +50,4 @@ The backend forwards this telemetry to the glove and the browser.
 ### Safety behavior (firmware)
 - **Command watchdog:** if no wheel command arrives within 500 ms, the firmware stops both motors. In V1 this watchdog ran in the Python backend; in V1.5 it runs on the Arduino.
 - **Proximity stop:** the firmware warns as an obstacle approaches and stops forward motion when the obstacle is too close.
-- **Hysteresis:** command processing uses hysteresis around thresholds to prevent flicker.
+- **Hysteresis:** the blocked flag is set at 25 cm or closer and cleared only once the distance exceeds 30 cm, which prevents flicker near the threshold.

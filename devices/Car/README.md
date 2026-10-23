@@ -27,10 +27,10 @@ See [`docs/architecture.md`](docs/architecture.md) for system design and [`docs/
 - Motor safety watchdog that halts output if control input stops (originally implemented in the Python backend)
 
 **V1.5**
-- Independent left and right wheel control for differential drive
+- Independent left and right wheel control for differential drive, including pivot and curved turns
 - Glove driving: joystick and wrist-gesture commands arrive through the Raspberry Pi
 - Proximity telemetry (distance, blocked flag, indicator color) returned to the glove, with a proximity warning and automatic stop
-- Hysteresis in the car's command processing to remove command flicker near thresholds
+- Hysteresis on the obstacle-blocked flag (stops at 25 cm, clears at 30 cm) to remove flicker near the threshold
 - Safety watchdog moved from the Python backend into the Arduino firmware, with the same 500 ms timeout behavior
 
 ## Protocol
@@ -50,9 +50,9 @@ Full command specification for both V1 and V1.5 is in [`docs/protocol.md`](docs/
 ## Setup
 
 **Firmware**
-1. Open the firmware sketch for your version in [`firmware/`](firmware/) (`Car_V1.ino` or `Car_V1.5.ino`) in the Arduino IDE
-2. Install the required libraries (V1 also needs `Servo`)
-3. Upload to an Arduino Uno wired per the pin map in `docs/architecture.md`
+1. Open the firmware sketch for your version in [`firmware/`](firmware/) (`Car_V1/Car_V1.ino` or `Car_V1.5/Car_V1.5.ino`) in the Arduino IDE
+2. Install the required libraries (`SR04`; V1 also needs `Servo`)
+3. Upload to an Arduino Uno wired per the schematic in [`media/schematic.pdf`](media/schematic.pdf)
 
 **Backend**
 
@@ -71,4 +71,4 @@ To view the V1 state of the repository, run `git checkout car-v1.0`. Because tag
 
 **V1** is complete: all three subsystems (light, move, scan) work end to end, browser to hardware and back. V1 ran against a hardware constraint: attaching the servo library consumes a timer the Uno needs for PWM on two pins, leaving too few PWM-capable pins for full RGB and full variable-speed control in both directions. See `docs/architecture.md` for the tradeoff and what V1 scoped out as a result.
 
-**V1.5** is complete. The scanning servo is no longer used, so that timer constraint no longer applies, and the car now takes wheel commands from the glove and browser.
+**V1.5** car firmware is complete. The scanning servo is no longer used, so that timer constraint no longer applies, and the car takes left and right wheel commands from the glove and browser. Glove and backend refinement and full-system integration are still in progress.
