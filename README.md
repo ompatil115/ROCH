@@ -1,45 +1,50 @@
 # Robotics Operations and Control Hub (ROCH)
 
-ROCH (Robotics Operations and Control Hub) is a personal engineering project that explores how multiple robotic devices can be monitored and controlled through a unified browser-based interface and a wearable control glove.
+ROCH (Robotics Operations and Control Hub) is a personal engineering project that explores how robotic devices can be monitored and controlled through a unified browser-based interface and a wearable control glove.
 
-The project is developed in phases. Each phase delivers a milestone across four systems: the **car**, the **HUD** (browser interface), the **glove**, and the **arm**.
+The project is developed in phases. Each phase delivers a milestone across three systems: the **car**, the **HUD** (browser interface), and the **glove**.
 
 ## Project Status
 
 | Phase | Systems | Status |
 |---|---|---|
 | Phase 1 | Car V1, HUD V1 | Complete |
-| Phase 2 | Glove V1, Car V1.5, HUD V1.5 | Complete |
-| Phase 3 | Glove V2, Arm V1, HUD V2 | In progress: arm software drafted and protocol defined; hardware sourced, not yet assembled or tested |
-| Phase 4+ | To be determined | Planned |
+| Phase 2 | Car V1.5, Glove, Backend, HUD V1.5 | In progress |
+| Phase 3+ | To be determined | Planned |
 
-Items described as "planned" are design decisions, not working features.
+**Phase 2 progress**
+
+| System | Status |
+|---|---|
+| Car V1.5 | Firmware complete |
+| Glove | Firmware being polished; V1 hardware design being finalized; calibration and testing in progress |
+| Backend | Being refined |
+| HUD V1.5 | Code in progress; system integration and demonstrations still to do |
 
 ## Repository Layout
 
 ```text
 ROCH/
 ├── backend/        shared Flask app (HTTP API and browser HUD)
-├── devices/
-│   ├── Car/        firmware, documentation, media
-│   ├── Glove/      glove firmware
-│   └── Arm/        arm controller
-└── docs/
+└── devices/
+    ├── Car/        firmware, documentation, media
+    └── Glove/      firmware, documentation
 ```
 
-Each device folder has its own documentation. See [`devices/Car/`](devices/Car/), [`devices/Glove/`](devices/Glove/), and [`devices/Arm/`](devices/Arm/).
+Each device folder has its own documentation. See [`devices/Car/`](devices/Car/) and [`devices/Glove/`](devices/Glove/).
 
 ## Backend
 
-A single Flask application in [`backend/`](backend/) serves the car, the glove, and the arm, and hosts the browser HUD. Each device has its own routes (`/car/...`, `/glove/...`, `/arm/...`), so a command name only needs to be unique within its device.
+A single Flask application in [`backend/`](backend/) serves the car and the glove and hosts the browser HUD. Each device has its own routes, so a command name only needs to be unique within its device. The backend is under active refinement. Setup, routes, and details are in [`backend/README.md`](backend/README.md).
 
-```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python app.py
-```
+### Versions and Tags
+
+The backend is one `app.py` that is updated over time. Git tags mark each version, and `git checkout <tag>` shows the whole repository as it was at that point.
+
+| Phase | Tags |
+|---|---|
+| Phase 1 | `car-v1.0`, `hud-v1.0` |
+| Phase 2 | Tags will be added as each version is finalized |
 
 ## Phase 1: Car V1 and HUD V1
 
@@ -76,74 +81,40 @@ Motors, Servo, Ultrasonic Sensor, Lighting
 
 See [`devices/Car/`](devices/Car/) for build documentation, firmware, and media.
 
-## Phase 2: Glove V1, Car V1.5, HUD V1.5
+## Phase 2: Glove, Car V1.5, HUD V1.5 (in progress)
 
-Phase 2 adds a wearable control glove and updates the car and HUD to support glove driving through both a joystick channel and a wrist-gesture channel.
+Phase 2 adds a wearable control glove and updates the car and HUD to support glove driving. This phase is still in development.
 
-### Glove V1
+### Glove
 
-The glove is built around an ESP32-C3 with an I2C IMU, a joystick, and a vibration motor for haptic feedback. It sends drive commands and receives car telemetry every 50 ms. See [`devices/Glove/`](devices/Glove/).
+The glove is built around an ESP32-C3 with an I2C IMU, a joystick, and a vibration motor for haptic feedback. It sends drive commands to the car through the Raspberry Pi and receives car proximity telemetry. See [`devices/Glove/`](devices/Glove/).
 
-**Car control scheme:**
-- **Joystick (primary):** throttle and steering using a throttle-gated mix and a squared turn curve.
-- **Wrist gesture (secondary):** holding the joystick button captures the current wrist angle as zero (press-to-zero); rotating about 45 degrees either way maps to pivot speed.
+**Current control design:**
+- **Joystick (primary):** throttle and steering using a squared turn curve.
+- **Wrist gesture (secondary):** holding the joystick button captures the current wrist angle as a reference; rotating about 45 degrees either way maps to pivot speed.
 - **Haptic feedback:** the vibration motor responds to the car's proximity data.
 
-A first-generation scheme mapped wrist pitch and roll directly to wheel speed. Logged trials led to the current joystick-primary design, and the earlier data and code are archived in this repository.
+An earlier generation mapped wrist pitch and roll directly to wheel speed. Its firmware is kept in [`devices/Glove/`](devices/Glove/).
 
-### Car V1.5 and HUD V1.5
+### Car V1.5
 
-Car V1.5 is a firmware update from the V1 move/light/scan protocol to a wheel-based protocol that supports glove driving, with forward distance sensing, a proximity warning and stop, and a command timeout. HUD V1.5 updates the browser interface to mirror glove input on the movement pad and to lock browser driving while the glove is in use.
+Car V1.5 is a firmware update from the V1 move/light/scan protocol to a wheel-based protocol that supports glove driving, with forward distance sensing, a proximity warning and stop, and a command timeout. The car firmware is complete.
+
+### HUD V1.5
+
+HUD V1.5 is in development. It will update the browser interface to work with the wheel-based protocol and glove input.
 
 ### Protocol (glove, Raspberry Pi, car)
 
 ```text
-WHEELS:<left>,<right>                 each -100..100      glove -> car
-PROX:<dist>,<blocked>,<red>,<green>                       car -> glove
+WHEELS:<left>,<right>                 each -100..100      toward car
+PROX:<dist>,<blocked>,<red>,<green>                       car telemetry
 ```
 
-The car stops its motors if no command arrives within 500 ms.
-
-## Phase 3: Glove V2, Arm V1, HUD V2
-
-Phase 3 extends the glove to control a desk-mounted robotic arm, driven directly by the Raspberry Pi through a PCA9685 servo driver and served by the same shared backend. It also expands the HUD to cover the arm and system health.
-
-**Arm V1 payload target:** 1.5 kg.
-
-### Arm control scheme
-
-For the arm, wrist, and forearm gestures are the primary control, and the joystick is used for precision adjustments, the reverse of the car scheme. The same press-to-zero technique sets the reference position for gesture control.
-
-### Arm protocol
-
-```text
-BASE:<pitch>,<yaw>             0-180 each
-ELBOW:<pitch>                  0-180
-WRIST:<pitch>,<yaw>,<roll>     0-180 each
-FINGER:<grip>                  0-90
-```
-
-Values are target servo angles in degrees. The glove converts its own range to servo range before sending.
-
-### Software
-
-[`devices/Arm/arm_controller.py`](devices/Arm/arm_controller.py) contains the `ArmController` class. It parses protocol strings, validates the joint count and angle range, and sets servo angles through the PCA9685. A single `execute()` call keeps the servo driver swappable, so it can later move to a microcontroller without changing the protocol. The parsing and clamping logic has been tested against simulated servos; hardware testing is pending.
-
-### HUD V2
-
-HUD V2 adds arm status and brief glove information, plus a communication status panel: connection state for each link, command rate, latency, and protocol and connectivity details.
-
-### Planned
-
-- Glove mode indicator showing whether the glove is in car or arm mode (not yet implemented in code).
-- Press-and-hold mode switching between car and arm control.
-- Flex-sensor gripper input.
-- Claw-mounted IMU for position feedback and a distance sensor at the claw.
-- Camera-based object detection on the Raspberry Pi.
+The car stops its motors if no command arrives within 500 ms. Full specifications are in [`devices/Car/docs/protocol.md`](devices/Car/docs/protocol.md) and [`devices/Glove/docs/protocol.md`](devices/Glove/docs/protocol.md).
 
 ## Roadmap
 
-1. Assemble the arm and test `ArmController` with real servos.
-2. Build Glove V2 and HUD V2.
-3. Add automated tests, structured data logging, and CI.
-4. Secure the communication links and extend operation beyond local Wi-Fi.
+1. Finish Phase 2: glove firmware and calibration, backend refinement, and HUD code.
+2. Integrate the glove, backend, HUD, and car as one system and record demonstrations.
+3. Define the next phase.
