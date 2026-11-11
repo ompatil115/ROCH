@@ -1,6 +1,15 @@
 # ROCH Backend
 
-A single Flask application (`app.py`) that runs on the Raspberry Pi. It connects the browser HUD, the glove, and the car, and serves the HUD page from `templates/index.html`.
+A single Flask application that runs on the Raspberry Pi. It connects the browser HUD, the glove, and the car, and serves the HUD page.
+
+Each backend version has its own files, so every version stays runnable from this folder:
+
+| Version | Backend | HUD page |
+|---|---|---|
+| Backend V1 / HUD V1 (Phase 1) | `app.py` | `templates/index.html` |
+| Backend V2 / HUD V2 (Phase 2) | `app_V2.py` | `templates/index_V2.html` |
+
+Each backend loads the HUD page that matches its version. The sections below describe Backend V2.
 
 **Current version:** Backend V2 (Phase 2). Backend V1 (Phase 1) is tagged `backend-v1.0`.
 
@@ -22,10 +31,10 @@ cd backend
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python app.py
+python app_V2.py
 ```
 
-Then open `http://<pi-ip>:5000` from any device on the same network. The car port and baud rates are constants at the top of `app.py`. Reserve a fixed IP for the Pi on your router so the glove can find it.
+Then open `http://<pi-ip>:5000` from any device on the same network. The car port and baud rates are constants at the top of `app_V2.py`. Reserve a fixed IP for the Pi on your router so the glove can find it.
 
 ## Routes
 
@@ -87,7 +96,7 @@ Designed behavior on the backend side. Car and glove limits are in their own REA
 
 ## Versions and Tags
 
-The backend is one `app.py` that is updated over time. Git tags mark each version, and `git checkout <tag>` shows the whole repository as it was at that point.
+Each version has its own backend and HUD file (see the table at the top), and git tags mark each version. `git checkout <tag>` shows the whole repository as it was at that point.
 
 | Phase | Version | Tag |
 |---|---|---|

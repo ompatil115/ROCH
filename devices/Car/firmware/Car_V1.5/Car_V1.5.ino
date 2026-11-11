@@ -1,14 +1,14 @@
 //  Car V1.5 Code  //
 //  Om Patil       //
-//  2026-10-21     //
+//  2026-11-05     //
 
 #include <SR04.h>
 
 #define ENABLE 7
-#define DIRA 5
-#define DIRB 9
-#define DIRC 6
-#define DIRD 10
+#define DIRA 6
+#define DIRB 10
+#define DIRC 5
+#define DIRD 9
 #define RED 11
 #define GREEN 3
 #define TRIG_PIN A1
@@ -54,7 +54,6 @@ void setup() {
 }
 
 // ---------- Wheels ----------
-
 int convert() {
   int m = abs(inten);
   if (m == 0) return 0;
@@ -227,10 +226,9 @@ void receiveWheels() {
 }
 
 // ---------- Prox ----------
-
 void readDistance() {
   long reading = sr04.Distance();
-  if (reading > 400) reading = 400;
+  if (reading > 400) reading = 401;
   dist = reading;
 }
 
@@ -264,7 +262,7 @@ void sendProx() {
   Serial.print(dist);
   Serial.print(",");
   Serial.print(blocked ? 1 : 0);
-  Serial.print(",");
+  Serial.print("|");
   Serial.print(red);
   Serial.print(",");
   Serial.println(green);
@@ -281,8 +279,4 @@ void proxTick() {
 }
 
 // ---------- Main ----------
-
-void loop() {
-  proxTick();
-  receiveWheels();
-}
+void loop() {proxTick(); receiveWheels();}

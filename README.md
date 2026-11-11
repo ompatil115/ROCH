@@ -39,7 +39,7 @@ A single Flask application in [`backend/`](backend/) serves the car and the glov
 
 ### Versions and Tags
 
-The backend is one `app.py` that is updated over time. Git tags mark each version, and `git checkout <tag>` shows the whole repository as it was at that point. A full version step marks a significant change, and a half step marks a minor one. Phase 1 and Phase 2 are separate builds, so their versions are numbered independently.
+Each backend and HUD version has its own file (`app.py` and `templates/index.html` for Phase 1, `app_V2.py` and `templates/index_V2.html` for Phase 2). Git tags mark each version, and `git checkout <tag>` shows the whole repository as it was at that point. A full version step marks a significant change, and a half step marks a minor one. Phase 1 and Phase 2 are separate builds, so their versions are numbered independently.
 
 | Phase | Versions | Tags |
 |---|---|---|
