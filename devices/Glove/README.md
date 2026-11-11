@@ -1,78 +1,82 @@
 # ROCH Glove
 
-A wearable controller built around an ESP32-C3 that drives the ROCH car from hand input. It reads a joystick and wrist orientation, sends drive commands through the shared backend, and gives haptic feedback from the car's proximity data.
+A wearable controller built around a Seeed XIAO ESP32-C3 that drives the ROCH car from wrist orientation. It reads an MPU-6050 IMU and two buttons, sends drive commands through the shared backend, and gives haptic feedback from the car's proximity data.
 
-**Status: in development.** The firmware is still being polished, and testing and test documentation are still to come. See [Status](#status).
+**Status: in development.** The glove, backend, and HUD have been tested together. Testing of the IMU orientation and of smooth button driving is still to come. See [Status](#status).
 
-The glove has three firmware versions:
-
-- **Gen 1:** the original tilt-control version, where wrist pitch and roll set wheel speed. Kept in [`firmware/`](firmware/) for reference.
-- **V1:** joystick-primary control over USB serial, used for bench testing.
-- **V1.5:** the same controls over Wi-Fi, using HTTP and JSON.
+**Current version:** Glove V1 (Phase 2). It is one sketch that sends over Wi-Fi (HTTP) as the primary link and falls back to USB serial when Wi-Fi is down.
 
 This folder holds the glove's firmware, documentation, and media. The backend is shared across ROCH devices and lives in [`backend/`](../../backend/).
 
-## Development Approach
-
-The glove is built serial-first. V1 connects over USB serial, which makes it easy to log values and iterate on the control scheme at the bench. Once the joystick and gesture behavior is satisfactory, V1.5 moves the link to Wi-Fi HTTP/JSON so the glove can be worn untethered. The control logic is the same in both versions; only the transport changes.
-
-Gen 1 mapped wrist pitch and roll directly to wheel speed. After testing those gestures, the scheme was not satisfying in use, so the joystick became the primary control and the wrist gesture moved to a secondary pivot role. Formal re-testing of the current design, with video and a spreadsheet, is still to come.
-
 ## Overview
 
-- **Firmware (C++, ESP32-C3):** reads the joystick and IMU, mixes input into left and right wheel values, sends commands at up to 20 per second (50 ms interval) while input is active, and drives the vibration motor from returned telemetry
+- **Firmware (C++, ESP32-C3):** reads the IMU and buttons, mixes pitch and roll into left and right wheel values, sends commands while the roll/safety button is held, and drives the vibration motor from the car's proximity telemetry
 - **Backend (Python/Flask, Raspberry Pi):** receives glove commands, relays wheel commands to the car, and returns car telemetry to the glove
 
-See [`docs/architecture.md`](docs/architecture.md) for system design and [`docs/protocol.md`](docs/protocol.md) for the message specification for V1 and V1.5.
+See [`docs/architecture.md`](docs/architecture.md) for system design and [`docs/protocol.md`](docs/protocol.md) for the message specification.
+
+## Controls
+
+- **Pitch sets speed:** tilting the wrist down drives forward and tilting up drives backward. There is a dead zone of ±15° and full speed at 45°.
+- **Roll steers:** rolling the wrist right turns right and rolling left turns left. Steering slows the inside wheel, from the dead zone at 15° down to 0 at 70°.
+- **Roll/safety button (D9):** must be held to drive. Pressing it sets the current roll as neutral. On release the glove holds its last command for 1000 ms, sends one stop, then stays silent.
+- **Pitch button (D10):** pressing it sets the current pitch as neutral. While it is held, the glove sends zero wheel values, so it works as an emergency stop. It overrides the roll/safety button and cancels the 1000 ms hold.
+- **Neutral setting:** each button averages 10 IMU readings over about 50 ms, so the neutral position is not set from a single noisy reading.
+- **Haptics:** the vibration motor grows stronger as the car approaches an obstacle (starting at 80 cm) and is fully on when the car is blocked. It stays off while the roll/safety button is not armed.
+
+In-place pivoting is in the firmware but turned off in Glove V1 (`ENABLE_PIVOT`).
 
 ## Features
 
-**V1 (serial)**
-- Joystick drive: throttle and steering with a squared turn curve and a dead zone
-- Wrist-gesture pivot: holding the joystick button captures the current wrist angle as a reference; rotating about 45° either way maps to pivot speed
-- Haptic feedback: the vibration motor responds to the car's proximity data
-- Commands sent over USB serial at up to 20 per second while input is active
-- Silent at zero: on release the glove sends one zero command, then stays silent until input resumes
-
-**V1.5 (Wi-Fi)**
-- Same control scheme as V1, untethered
-- Commands and telemetry exchanged with the backend over Wi-Fi as HTTP/JSON; the rate is limited by network round-trip time
-- Boot-time IMU check that warns if the sensor is not found
-- Stale telemetry is no longer used for haptics after 500 ms
-- Wi-Fi credentials and backend address kept in a git-ignored `secrets.h`
+- IMU orientation control with per-axis neutral zeroing
+- Press-to-drive safety button and a separate emergency-stop button
+- Wi-Fi HTTP link to the backend with a USB serial fallback, using the same message format on both
+- Wi-Fi reconnect attempt every 5 s, with Wi-Fi power saving turned off for a steadier link
+- Silent at zero: after the stop, the glove sends only a keep-alive `PING` until input resumes
+- Wi-Fi credentials kept in a git-ignored `secrets.h`
 
 ## Hardware
 
-- Seeed XIAO ESP32-C3
+- Seeed XIAO ESP32-C3 (with its external antenna attached; without it the Wi-Fi link was unreliable in testing)
 - MPU-6050 IMU
-- Joystick module with push button
+- 2x push buttons (6 mm tactile, 4-pin)
 - 3V DC vibration motor
+
+### Wiring
+
+| Component | XIAO pin | GPIO |
+|---|---|---|
+| MPU-6050 SDA | D5 | 7 |
+| MPU-6050 SCL | D6 | 21 |
+| Vibration motor | D8 | 8 |
+| Roll/safety button | D9 | 9 |
+| Pitch button | D10 | 10 |
+
+Each button connects between its pin and GND, using the ESP32's internal pull-up (`INPUT_PULLUP`), so a press reads LOW. The two wired legs are on opposite sides of the 4-pin switch. The schematic will be added to [`docs/media/`](docs/media/).
 
 ## Setup
 
 **Firmware**
-1. Open the sketch for your version in [`firmware/`](firmware/) (`Glove_V1/Glove_V1.ino` for USB serial, or `Glove_V1.5/Glove_V1.5.ino` for Wi-Fi) in the Arduino IDE
-2. Install the ESP32 board package and the library for the IMU
-3. V1.5 only: copy `secrets.h.example` to `secrets.h` in the same folder and fill in `WIFI_SSID`, `WIFI_PASSWORD`, and `BACKEND_URL`. `secrets.h` is git-ignored and must not be committed
-4. Upload to the ESP32-C3 (V1: also connect it to the Raspberry Pi over USB)
+1. Open the Glove V1 sketch in [`firmware/`](firmware/) in the Arduino IDE
+2. Install the ESP32 board package (no extra libraries are needed)
+3. Copy `secrets.h.example` to `secrets.h` in the same folder as the sketch and fill in `WIFI_SSID` and `WIFI_PASS`. `secrets.h` is git-ignored and must not be committed
+4. Set `PI_HOST` in the sketch to the Raspberry Pi's IP address. Reserve a fixed IP for the Pi on your router so it does not change
+5. Upload to the ESP32-C3
 
 **Backend**
 
-Start the shared backend as described in [`backend/README.md`](../../backend/README.md). For V1.5, the glove and the Raspberry Pi must be on the same network.
+Start the shared backend as described in [`backend/README.md`](../../backend/README.md). For the Wi-Fi link, the glove and the Raspberry Pi must be on the same network. For the serial fallback, connect the glove to the Pi over USB.
 
 ## Version History
 
 | Version | Description | Git tag |
 |---|---|---|
-| Gen 1 | Tilt control (pitch and roll set wheel speed) | not tagged |
-| V1 | Joystick-primary driving, wrist-gesture pivot, proximity haptics over USB serial | not yet tagged |
-| V1.5 | Same controls over Wi-Fi HTTP/JSON | not yet tagged |
+| V1 | IMU pitch and roll control with press-to-drive safety, HTTP primary and serial fallback, proximity haptics | not yet tagged |
 
 ## Status
 
-The glove is in development. The firmware for V1 and V1.5 is written but not finalized, and the V1 hardware design is still being finished. Still to do:
+Glove V1 firmware, the Wi-Fi link, the serial fallback, the handover between the two, and the emergency-stop button have been tested. Still to do:
 
-- Finish polishing the firmware
-- Calibrate and test the controls
-- Document the tests with video and a spreadsheet
-- Integrate with the backend and HUD as one system
+- Test the new IMU orientation and smooth button driving
+- Finish the hardware design and add the schematic
+- Integrate with the car, backend, and HUD as one system and record demonstrations

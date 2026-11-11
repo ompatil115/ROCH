@@ -2,7 +2,7 @@
 
 Communication between the Flask backend and the car's Arduino firmware uses plain-text commands over USB serial, one command per line, terminated with `\n`.
 
-This document covers the car only. The backend is shared across ROCH devices and sends each device's commands to its own interface: the car over USB serial (this document), and the arm through the PCA9685 over I2C. Each device's protocol is documented in its own folder, so a command name only has to be unique within its device. The arm protocol is described in the [root README](../../../README.md#arm-protocol).
+This document covers the car only. The backend is shared across ROCH devices and sends each device's commands to its own interface. The glove's protocol is in [`devices/Glove/docs/protocol.md`](../../Glove/docs/protocol.md).
 
 The car has two protocol versions:
 
@@ -40,12 +40,12 @@ V1.5 replaces the V1 Move and Scan commands with a single wheel command and a pr
 ### Drive
 - `WHEELS:<left>,<right>` — left and right wheel intensity, each -100 to 100. The sign sets direction and the magnitude sets speed. `WHEELS:0,0` stops both motors.
 
-The firmware applies the two values directly: equal values drive straight, unequal values of the same sign curve, and opposite signs pivot in place. Wheel commands are sent continuously while an input is active. Mixing of joystick and gesture input into left and right values happens on the glove or browser side, so the firmware only applies the values it receives.
+The firmware applies the two values directly: equal values drive straight, unequal values of the same sign curve, and opposite signs pivot in place. Wheel commands are sent continuously while an input is active. Mixing of the glove's pitch and roll into left and right values happens on the glove (or on the browser side), so the firmware only applies the values it receives. The glove sends extra pitch and roll fields to the backend, but the backend forwards only `WHEELS:<left>,<right>` to the car.
 
 ### Telemetry
 - `PROX:<dist>,<blocked>,<red>,<green>` — sent from the Arduino to the backend. `dist` is the forward distance in cm, `blocked` is the obstacle-blocked flag, and `red` and `green` are the current color values of the proximity indicator LED.
 
-The backend forwards this telemetry to the glove and the browser.
+The backend keeps the latest `dist` and `blocked` values and returns them to the glove as `PROX:<dist>,<blocked>,`, and serves them to the HUD.
 
 ### Safety behavior (firmware)
 - **Command watchdog:** if no wheel command arrives within 500 ms, the firmware stops both motors. In V1 this watchdog ran in the Python backend; in V1.5 it runs on the Arduino.

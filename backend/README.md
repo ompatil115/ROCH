@@ -1,22 +1,21 @@
 # ROCH Backend
 
-A single Flask application (`app.py`) that runs on the Raspberry Pi. It connects the browser HUD, the glove, and the car, and serves the HUD page.
+A single Flask application (`app.py`) that runs on the Raspberry Pi. It connects the browser HUD, the glove, and the car, and serves the HUD page from `templates/index.html`.
 
-**Status:** under active refinement. Routes and setup details may change.
+**Current version:** Backend V2 (Phase 2). Backend V1 (Phase 1) is tagged `backend-v1.0`.
 
 ## Overview
 
 - Serves the browser HUD at `/`.
 - Sends wheel commands to the car's Arduino over USB serial.
 - Reads car proximity telemetry and exposes it to the HUD.
-- Reads glove commands over USB serial and forwards them to the car.
+- Receives glove commands over HTTP (primary) or USB serial (fallback) and forwards them to the car.
 - Decides whether the glove or the browser has control of the car at any moment.
-
-Each device has its own routes, so a command name only needs to be unique within its device.
+- Runs on waitress (8 threads) at `0.0.0.0:5000`.
 
 ## Setup
 
-Requirements: Python 3 on the Raspberry Pi, with the car (and glove, if used) connected over USB.
+Requirements: Python 3 on the Raspberry Pi, with the car connected over USB. The glove connects over WiFi, or over USB if used as the fallback.
 
 ```bash
 cd backend
@@ -26,36 +25,71 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Then open `http://<pi-ip>:5000` from any device on the same network. Serial port paths are set in `app.py`.
+Then open `http://<pi-ip>:5000` from any device on the same network. The car port and baud rates are constants at the top of `app.py`. Reserve a fixed IP for the Pi on your router so the glove can find it.
 
 ## Routes
 
 | Route | Method | Purpose |
 |---|---|---|
 | `/` | GET | Browser HUD |
-| `/car/state` | GET | Latest car telemetry and which input currently has control |
-| `/car/wheels` | POST | Send left and right wheel values (each -100 to 100) |
+| `/state` | GET | Latest proximity, wheel values, and whether the glove is driving (polled by the HUD every 100 ms) |
+| `/status` | GET | Connection status for the car and the glove (polled by the HUD every 1 s) |
+| `/wheels` | POST | Send left and right wheel values from the browser (each -100 to 100) |
+| `/glove` | POST | Glove input over HTTP |
 
-`/car/wheels` returns an error if the values are invalid (400), if the glove currently has control (409), or if the car is not connected (503).
+`/wheels` returns an error if the values are invalid (400), if the glove currently has control (409), or if the car is not connected (503).
+
+### `/glove`
+
+The request body is plain text: a `WHEELS` line or `PING`. The reply is plain text in the form `PROX:dist,blocked,`. A bad body returns 400. `PING` keeps the link alive without counting as driving.
+
+### `/status`
+
+```json
+{
+  "car":   { "connected": true, "port": "/dev/ttyACM0", "type": "serial", "baud": 9600, "age": 0.1 },
+  "glove": {
+    "inUse": false,
+    "age": null,
+    "serial": { "connected": false, "port": null, "type": "serial", "baud": 115200 },
+    "http":   { "connected": true, "ip": "192.168.1.68", "type": "http", "age": 0.4 }
+  }
+}
+```
+
+`age` is seconds since the last message. The HUD shows each connected glove link, red when the glove is driving and gray when no link is connected.
 
 ## Control Arbitration
 
-The glove has control while it is sending non-zero commands, and for 500 ms after the last one. Outside that window the browser can drive. `/car/state` reports the current driver as `glove`, `browser`, or `none`. A single lock covers both the control decision and the serial write to the car.
+The glove has control while it is sending `WHEELS` lines, and for 1 s after the last one (`GLOVE_TIMEOUT`). Outside that window the browser can drive. `/state` reports `gesture` as 1 while the glove has control.
+
+When the glove is connected over both links, HTTP wins while it has driven within `GLOVE_TIMEOUT`, and serial `WHEELS` lines are ignored. If HTTP goes quiet, serial takes over without a restart. The HTTP link counts as connected for 5 s after the last message (`HTTP_LINK_TIMEOUT`). A lock covers both the control decision and the serial write to the car.
+
+Incoming values are clamped: wheels to ±100, pitch to ±45, roll to ±70.
 
 ## Serial Links
 
 | Device | Baud rate | Notes |
 |---|---|---|
 | Car (Arduino Uno) | 9600 | Receives `WHEELS` commands, sends `PROX` telemetry |
-| Glove | 115200 | Port opens when the glove connects and retries if it drops |
+| Glove (fallback only) | 115200 | Port is found automatically among the `/dev/ttyACM*` devices, opens when the glove connects, and retries if it drops |
 
 Command and telemetry formats are in [`devices/Car/docs/protocol.md`](../devices/Car/docs/protocol.md) and [`devices/Glove/docs/protocol.md`](../devices/Glove/docs/protocol.md).
+
+## Safety Behavior
+
+Designed behavior on the backend side. Car and glove limits are in their own READMEs.
+
+- Wheel values are clamped before they reach the car.
+- The glove takes priority over the browser, and `/wheels` is refused (409) while it is driving.
+- Glove control expires 1 s after the last `WHEELS` line, and the HTTP link is marked disconnected after 5 s without any message.
+- Bad glove bodies are rejected (400) and never forwarded.
 
 ## Versions and Tags
 
 The backend is one `app.py` that is updated over time. Git tags mark each version, and `git checkout <tag>` shows the whole repository as it was at that point.
 
-| Phase | Tags |
-|---|---|
-| Phase 1 | `car-v1.0`, `hud-v1.0` |
-| Phase 2 | Tags will be added as each version is finalized |
+| Phase | Version | Tag |
+|---|---|---|
+| Phase 1 | Backend V1 | `backend-v1.0` |
+| Phase 2 | Backend V2 | Tag will be added when finalized |

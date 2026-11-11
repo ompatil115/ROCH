@@ -6,27 +6,28 @@ The car has two versions, V1 (browser control) and V1.5 (adds glove driving). Bo
 
 **Browser (JavaScript)**: renders the interface (light slider, movement pad, and in V1 the scan button and radar-style scan graph), computes derived values (RGB from slider position, direction and intensity from pad position), and sends commands to the backend over HTTP.
 
-**Backend (Python/Flask, on Raspberry Pi)**: mediates between the browser, the glove, and the hardware. It translates HTTP requests into serial commands and parses serial responses back into JSON for the browser. The backend is a single Flask application shared across all ROCH devices (see [`backend/`](../../../backend/)). Each device has its own routes, and the car's commands are handled under `/car/...`, so the car logic does not depend on the arm or glove.
+**Backend (Python/Flask, on Raspberry Pi)**: mediates between the browser, the glove, and the hardware. It translates HTTP requests into serial commands and parses serial responses back into JSON for the browser. The backend is a single Flask application shared across all ROCH devices (see [`backend/`](../../../backend/)). In V1 the browser used separate light, move, and scan routes. In V1.5 the browser sends wheel values to `/wheels`, and the glove sends them to `/glove`.
 
 - *V1:* three concurrent threads: the main Flask request handler, a background serial reader (continuously parsing scan data and watching for completion), and a watchdog that halts motor output if movement commands stop arriving.
-- *V1.5:* the watchdog moved into the Arduino firmware. The backend runs the Flask request handler plus background serial readers for the car and for glove traffic, relaying wheel commands to the car and car telemetry back to the glove.
+- *V1.5:* the watchdog moved into the Arduino firmware. Backend V2 runs the Flask request handler plus background serial readers for the car and for the glove's serial fallback, relaying wheel commands to the car and car telemetry back to the glove.
 
 **Firmware (C++, on Arduino Uno)**: executes hardware control: PWM for motors and lighting, ultrasonic distance sampling (and, in V1, servo positioning). It parses incoming serial commands and dispatches to the matching function.
 
 - *V1.5 adds:* a 500 ms command watchdog that stops the motors, proximity warning and automatic stop based on the ultrasonic sensor, hysteresis on the obstacle-blocked flag (stops at 25 cm, clears at 30 cm) to prevent flicker near the threshold, and periodic proximity telemetry back to the backend.
 
-Computation was deliberately kept off the Arduino where possible (color math, direction and intensity logic) to minimize firmware complexity, since the Uno also handles time-sensitive sensor timing and motor control. In V1.5, input mixing happens on the glove, so the car firmware only applies the left and right wheel values it receives, including pivot and curved turns when the two values differ.
+Computation was deliberately kept off the Arduino where possible (color math, direction and intensity logic) to minimize firmware complexity, since the Uno also handles time-sensitive sensor timing and motor control. In V1.5, input mixing happens on the glove (or the browser), so the car firmware only applies the left and right wheel values it receives, including pivot and curved turns when the two values differ.
 
 ## Data flow
 
 **V1:**
-Browser → HTTP → Flask (`/car/...`) → Serial → Arduino → (physical action, or serial response) → Flask (background thread) → JSON → Browser
+Browser → HTTP → Flask → Serial → Arduino → (physical action, or serial response) → Flask (background thread) → JSON → Browser
 
 **V1.5:**
-Glove or Browser → HTTP → Flask (`/car/...`) → Serial → Arduino → (wheels and proximity indicator LED)
+Glove → HTTP (`/glove`) or USB serial → Flask → Serial → Arduino → (wheels and proximity indicator LED)
+Browser → HTTP (`/wheels`) → Flask → Serial → Arduino
 Arduino → Serial (proximity telemetry) → Flask → Glove and Browser
 
-The same backend also serves the glove and the arm, each through its own routes. See the [root README](../../../README.md) for the full system.
+The same backend also serves the glove. See the [root README](../../../README.md) for the full system.
 
 ## V1 Hardware Constraint: PWM Pin Availability
 

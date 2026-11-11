@@ -1,21 +1,23 @@
 # System Architecture
 
-The glove has two versions, V1 (USB serial) and V1.5 (Wi-Fi HTTP/JSON). Both run the same control logic on the glove, and only the link to the Raspberry Pi differs. The responsibilities of each layer are described below.
+The glove is one firmware (Glove V1) with two links to the Raspberry Pi: Wi-Fi HTTP as the primary link and USB serial as the fallback. The control logic is the same on both, and only the transport differs. The responsibilities of each layer are described below.
 
 ## Layers
 
-**Glove firmware (C++, on ESP32-C3)**: reads the joystick and the MPU-6050 IMU, computes left and right wheel values, sends them to the backend every 50 ms while input is active, and drives the vibration motor from the car's proximity telemetry.
+**Glove firmware (C++, on ESP32-C3)**: reads the MPU-6050 IMU and the two buttons, computes left and right wheel values, sends them to the backend, and drives the vibration motor from the car's proximity telemetry.
 
-- *Joystick (primary):* throttle and steering are combined, with a squared turn curve on the steering axis. A dead zone of 10, applied in code, ignores small unintended movement.
-- *Wrist gesture (secondary):* holding the joystick button captures the current wrist angle as a reference. Rotating about 45° either way from that reference maps to pivot speed, from 0 to 100%.
-- *Silent at zero:* when the joystick is at rest, the glove sends a single zero command and then stops sending until input resumes.
-- *Haptics:* vibration intensity follows the proximity data returned from the car.
-- *V1.5 additionally:* the glove checks the IMU at boot and warns if it is not found, and it stops using telemetry that is more than 500 ms old.
+- *Orientation:* pitch (down is forward) sets speed and roll (right is a right turn) steers. A dead zone of ±15° ignores small movement. Steering slows the inside wheel rather than reversing it.
+- *Neutral:* each button sets the neutral angle for its own axis by averaging 10 IMU readings taken about 5 ms apart. Pitch is also divided by the cosine of the neutral roll (floored at 0.5) so a rolled wrist does not change the pitch reading too much.
+- *Press to drive:* wheel values are only non-zero while the roll/safety button is held. On release the glove holds the last command for 1000 ms, sends one stop, then goes silent.
+- *Emergency stop:* the pitch button forces zero wheel values while held.
+- *Haptics:* vibration intensity follows the proximity data returned from the car, and is off while the glove is not armed.
+- *Link:* the glove posts each `WHEELS` line over HTTP when Wi-Fi is up and prints the same line to serial when it is not. It posts `PING` to keep the link alive.
 
 **Backend (Python/Flask, on Raspberry Pi)**: relays wheel commands from the glove to the car and returns car telemetry to the glove. The backend is a single Flask application shared across ROCH devices (see [`backend/`](../../../backend/)).
 
-- *V1:* a background serial reader handles the glove's USB serial link alongside the car's.
-- *V1.5:* the glove connects over Wi-Fi, so glove traffic arrives as HTTP requests carrying JSON payloads on `/glove/car` instead of serial lines.
+- *HTTP:* glove messages arrive on `/glove`, and the reply carries the latest `PROX` line.
+- *Serial fallback:* a background serial reader handles the glove's USB serial link alongside the car's, and writes `PROX` lines back to it.
+- *Priority:* HTTP wins while it has driven within the last second, so the glove can switch links without a restart.
 
 **Car firmware (C++, on Arduino Uno)**: applies the left and right wheel values it receives and returns proximity telemetry. It also enforces the 500 ms command watchdog and the proximity stop, so the car halts safely if the glove stops sending. See the [car architecture](../../Car/docs/architecture.md).
 
@@ -23,30 +25,32 @@ Input mixing is done on the glove, so the backend and car firmware only forward 
 
 ## Data flow
 
-**V1 (USB serial):**
-Glove → USB Serial → Pi (backend) → Serial → Car Arduino → (wheels, proximity indicator LED)
-Car Arduino → Serial (proximity telemetry) → Pi (backend) → USB Serial → Glove (haptics)
+**Wi-Fi (primary):**
+Glove → Wi-Fi → HTTP POST (`/glove`) → Flask → Serial → Car Arduino → (wheels, proximity indicator LED)
+Car Arduino → Serial (proximity telemetry) → Flask → HTTP reply (`PROX`) → Glove (haptics)
 
-**V1.5 (Wi-Fi HTTP/JSON):**
-Glove → Wi-Fi → HTTP/JSON → Flask (`/glove/car`) → Serial → Car Arduino → (wheels, proximity indicator LED)
-Car Arduino → Serial (proximity telemetry) → Flask → Glove (haptics)
+**USB serial (fallback):**
+Glove → USB Serial → Flask → Serial → Car Arduino
+Car Arduino → Serial (proximity telemetry) → Flask → USB Serial → Glove (haptics)
 
-## Development Approach: Serial First, Then Wi-Fi
+## Design Notes
 
-V1 uses USB serial for bench testing. A wired link makes it easy to log values and tune the joystick mix, the pivot gesture, and the haptics without network issues. Once the controls and gestures are satisfactory, V1.5 moves the link to Wi-Fi HTTP/JSON so the glove can be worn untethered. Only the transport changes; the control logic does not.
+Glove V1 was built and tested in stages: the IMU, the vibration motor, and the buttons each have their own test sketch, and the serial link was working before the HTTP link was added. HTTP then became the primary link, with serial kept as a fallback.
 
-A first-generation scheme (Gen 1) mapped wrist pitch and roll directly to wheel speed. After testing those gestures, the scheme was not satisfying in use, so the joystick became the primary input and the wrist moved to the secondary pivot role. The Gen 1 firmware is kept in [`firmware/`](../firmware/).
+Over a poor Wi-Fi link only a few commands got through, which showed up as choppy driving. Attaching the XIAO's external antenna fixed it.
 
 ## Wiring
 
-The IMU is on the I2C bus, and the vibration motor is driven from a GPIO pin. The joystick wiring is being updated for a new joystick module with a separate push button, and its connections will be documented once finalized.
+| Component | XIAO pin | GPIO |
+|---|---|---|
+| MPU-6050 SDA | D5 | 7 |
+| MPU-6050 SCL | D6 | 21 |
+| Vibration motor | D8 | 8 |
+| Roll/safety button | D9 | 9 |
+| Pitch button | D10 | 10 |
 
-| Component | Connection |
-|---|---|
-| MPU-6050 IMU | I2C (SDA: 9, SCL: 8) |
-| Joystick module | To be documented |
-| Vibration motor | GPIO 10 |
+Buttons connect between the pin and GND and use `INPUT_PULLUP`. D8 is GPIO8, a boot strapping pin on the ESP32-C3, so keep the vibration motor circuit from pulling it low at reset.
 
 ## Media
 
-A photo of the prototype build and demonstration videos will be added. The schematic will be added after the joystick wiring is finalized.
+A photo of the prototype build, demonstration videos, and the schematic will be added.
