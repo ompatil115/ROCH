@@ -2,7 +2,7 @@
 
 A wearable controller built around a Seeed XIAO ESP32-C3 that drives the ROCH car from wrist orientation. It reads an MPU-6050 IMU and two buttons, sends drive commands through the shared backend, and gives haptic feedback from the car's proximity data.
 
-**Status: in development.** The glove, backend, and HUD have been tested together. Testing of the IMU orientation and of smooth button driving is still to come. See [Status](#status).
+**Status:** Phase 2 build. The firmware and hardware are done, and the glove has been tested with the backend, HUD, and car. See [Status](#status).
 
 **Current version:** Glove V1 (Phase 2). It is one sketch that sends over Wi-Fi (HTTP) as the primary link and falls back to USB serial when Wi-Fi is down.
 
@@ -39,8 +39,9 @@ In-place pivoting is in the firmware but turned off in Glove V1 (`ENABLE_PIVOT`)
 
 - Seeed XIAO ESP32-C3 (with its external antenna attached; without it the Wi-Fi link was unreliable in testing)
 - MPU-6050 IMU
-- 2x push buttons (6 mm tactile, 4-pin)
+- 2x push buttons (6 mm tactile, 4-pin), mounted on a small board worn on a finger
 - 3V DC vibration motor
+- LiPo battery with a toggle power switch
 
 ### Wiring
 
@@ -52,14 +53,14 @@ In-place pivoting is in the firmware but turned off in Glove V1 (`ENABLE_PIVOT`)
 | Roll/safety button | D9 | 9 |
 | Pitch button | D10 | 10 |
 
-Each button connects between its pin and GND, using the ESP32's internal pull-up (`INPUT_PULLUP`), so a press reads LOW. The two wired legs are on opposite sides of the 4-pin switch. The schematic will be added to [`docs/media/`](docs/media/).
+Each button connects between its pin and GND, using the ESP32's internal pull-up (`INPUT_PULLUP`), so a press reads LOW. The two wired legs are on opposite sides of the 4-pin switch. The battery connects through the toggle switch. The schematic is in [`docs/media/schematic.pdf`](docs/media/schematic.pdf) ([KiCad source](docs/media/Glove_V1.kicad_sch)), and a photo of the build is in [`docs/media/glove-image.pdf`](docs/media/glove-image.pdf).
 
 ## Setup
 
 **Firmware**
 1. Open the Glove V1 sketch in [`firmware/`](firmware/) in the Arduino IDE
 2. Install the ESP32 board package (no extra libraries are needed)
-3. Copy `secrets.h.example` to `secrets.h` in the same folder as the sketch and fill in `WIFI_SSID` and `WIFI_PASS`. `secrets.h` is git-ignored and must not be committed
+3. Copy `secrets.h.example` to `secrets.h` in the same folder (`firmware/Glove_V1/`) and fill in `WIFI_SSID` and `WIFI_PASS`. `secrets.h` is git-ignored and must not be committed
 4. Set `PI_HOST` in the sketch to the Raspberry Pi's IP address. Reserve a fixed IP for the Pi on your router so it does not change
 5. Upload to the ESP32-C3
 
@@ -75,8 +76,6 @@ Start the shared backend as described in [`backend/README.md`](../../backend/REA
 
 ## Status
 
-Glove V1 firmware, the Wi-Fi link, the serial fallback, the handover between the two, and the emergency-stop button have been tested. Still to do:
+Glove V1 firmware, the Wi-Fi link, the serial fallback, the handover between the two, the emergency-stop button, the IMU orientation, and button driving have all been tested. Results are in [`docs/phase2/`](../../docs/phase2/) at the repository root.
 
-- Test the new IMU orientation and smooth button driving
-- Finish the hardware design and add the schematic
-- Integrate with the car, backend, and HUD as one system and record demonstrations
+Demonstration videos are shown in the [root README](../../README.md#demonstrations).

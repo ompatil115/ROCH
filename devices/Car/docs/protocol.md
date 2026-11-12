@@ -43,7 +43,7 @@ V1.5 replaces the V1 Move and Scan commands with a single wheel command and a pr
 The firmware applies the two values directly: equal values drive straight, unequal values of the same sign curve, and opposite signs pivot in place. Wheel commands are sent continuously while an input is active. Mixing of the glove's pitch and roll into left and right values happens on the glove (or on the browser side), so the firmware only applies the values it receives. The glove sends extra pitch and roll fields to the backend, but the backend forwards only `WHEELS:<left>,<right>` to the car.
 
 ### Telemetry
-- `PROX:<dist>,<blocked>,<red>,<green>` — sent from the Arduino to the backend. `dist` is the forward distance in cm, `blocked` is the obstacle-blocked flag, and `red` and `green` are the current color values of the proximity indicator LED.
+- `PROX:<dist>,<blocked>|<red>,<green>` — sent from the Arduino to the backend every 100 ms. `dist` is the forward distance in cm (401 when nothing is detected within 400 cm), `blocked` is the obstacle-blocked flag, and `red` and `green` are the current color values of the proximity indicator LED. The backend uses only the part before the `|`.
 
 The backend keeps the latest `dist` and `blocked` values and returns them to the glove as `PROX:<dist>,<blocked>,`, and serves them to the HUD.
 

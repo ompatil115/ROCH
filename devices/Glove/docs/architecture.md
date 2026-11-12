@@ -49,8 +49,10 @@ Over a poor Wi-Fi link only a few commands got through, which showed up as chopp
 | Roll/safety button | D9 | 9 |
 | Pitch button | D10 | 10 |
 
-Buttons connect between the pin and GND and use `INPUT_PULLUP`. D8 is GPIO8, a boot strapping pin on the ESP32-C3, so keep the vibration motor circuit from pulling it low at reset.
+Buttons connect between the pin and GND and use `INPUT_PULLUP`. The LiPo battery connects through a toggle power switch. D8 is GPIO8, a boot strapping pin on the ESP32-C3, so keep the vibration motor circuit from pulling it low at reset.
 
 ## Media
 
-A photo of the prototype build, demonstration videos, and the schematic will be added.
+- **Schematic:** [`media/schematic.pdf`](media/schematic.pdf) ([KiCad source](media/Glove_V1.kicad_sch))
+- **Build photo:** [`media/glove-image.pdf`](media/glove-image.pdf)
+- **Demonstration videos:** see the [root README](../../../README.md#demonstrations)

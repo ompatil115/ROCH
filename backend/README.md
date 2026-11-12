@@ -68,6 +68,16 @@ The request body is plain text: a `WHEELS` line or `PING`. The reply is plain te
 
 `age` is seconds since the last message. The HUD shows each connected glove link, red when the glove is driving and gray when no link is connected.
 
+## HUD V2
+
+The browser HUD (`templates/index_V2.html`) polls `/state` every 100 ms and `/status` every 1 s. It shows the distance and proximity bars, the left and right wheel values, and the glove's pitch, roll, and neutral angles. A status strip shows the car and each glove link.
+
+The HUD drives from a pad or the keyboard:
+- **W, A, S, D or the arrow keys:** speed and turn ramp up over 1 s, and pressing the opposite key brakes twice as fast.
+- **X:** dead stop. Holding it keeps the car stopped and ignores the drive keys.
+- **Blocked:** forward motion is ignored while the car reports blocked.
+- **Glove takeover:** the HUD pad turns red and its controls are disabled while the glove is driving, and the HUD takes over again when the glove stops sending.
+
 ## Control Arbitration
 
 The glove has control while it is sending `WHEELS` lines, and for 1 s after the last one (`GLOVE_TIMEOUT`). Outside that window the browser can drive. `/state` reports `gesture` as 1 while the glove has control.

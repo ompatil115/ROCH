@@ -9,26 +9,30 @@ The project is developed in phases. Each phase delivers a milestone across three
 | Phase | Systems | Status |
 |---|---|---|
 | Phase 1 | Car V1, HUD V1, Backend V1 | Complete |
-| Phase 2 | Glove V1, Car V1.5, Backend V2, HUD V2 | In progress |
+| Phase 2 | Glove V1, Car V1.5, Backend V2, HUD V2 | Complete |
 | Phase 3+ | To be determined | Planned |
 
-**Phase 2 progress**
+**Phase 2 status**
 
 | System | Status |
 |---|---|
-| Glove V1 | Firmware and bench tests done; button-driving and IMU orientation testing in progress; hardware design being finalized |
-| Car V1.5 | Firmware complete |
-| Backend V2 | Working; HTTP and serial glove links tested |
-| HUD V2 | Working; system integration and demonstrations still to do |
+| Glove V1 | Firmware, hardware, and tests done |
+| Car V1.5 | Firmware and tests done |
+| Backend V2 | Done; HTTP and serial glove links tested |
+| HUD V2 | Done; keyboard and glove driving tested |
+
+Phase 2 is complete. Release tags are listed under [Versions and Tags](#versions-and-tags).
 
 ## Repository Layout
 
 ```text
 ROCH/
-├── backend/        shared Flask app, HUD, requirements
+├── backend/        shared Flask app, HUD pages, requirements
+├── docs/
+│   └── phase2/     Phase 2 test data (.xlsx) and change log (.pdf)
 └── devices/
     ├── Car/        README, docs (with media), firmware
-    └── Glove/      README, docs, firmware
+    └── Glove/      README, docs (with media), firmware
 ```
 
 Each device folder has its own documentation. See [`devices/Car/`](devices/Car/) and [`devices/Glove/`](devices/Glove/).
@@ -81,7 +85,7 @@ Motors, Servo, Ultrasonic Sensor, Lighting
 
 See [`devices/Car/`](devices/Car/) for build documentation, firmware, and media.
 
-## Phase 2: Glove V1, Car V1.5, Backend V2, HUD V2 (in progress)
+## Phase 2: Glove V1, Car V1.5, Backend V2, HUD V2 (complete)
 
 Phase 2 is a separate build from Phase 1. It adds a wearable control glove and updates the car, backend, and HUD to support glove driving.
 
@@ -116,10 +120,44 @@ WHEELS:<left>,<right>|<pitch>,<roll>|<neutralPitch>,<neutralRoll>   glove to bac
 PING                                                                 glove to backend (HTTP only, keeps the link alive)
 PROX:<dist>,<blocked>,                                               backend to glove
 WHEELS:<left>,<right>                                                backend to car, each -100..100
-PROX:<dist>,<blocked>,<red>,<green>                                  car telemetry to backend
+PROX:<dist>,<blocked>|<red>,<green>                                  car telemetry to backend
 ```
 
+`dist` is in cm, and the car reports 401 when nothing is detected within 400 cm (the HUD shows "400+"). The backend uses only the part before the `|` and ignores the LED colors.
+
 Full specifications are in [`devices/Glove/docs/protocol.md`](devices/Glove/docs/protocol.md) and [`devices/Car/docs/protocol.md`](devices/Car/docs/protocol.md).
+
+### Demonstrations
+
+Three videos cover the full Phase 2 system. The links will be added here.
+
+| Video | Shows |
+|---|---|
+| Glove driving | The glove driving the car on a stand with the HUD on a monitor behind it: pitch and roll control, the roll/safety button, the pitch-button emergency stop, the 1 s hold, and the proximity stop |
+| Keyboard driving | W, A, S and D with the 1 s ramp, faster braking on the opposite key, the X dead stop, and control switching between the keyboard and the glove |
+| Link handoff | The HUD status strip with both glove links, the switch between HTTP and serial in both directions, and the vibration motor responding to the car's proximity |
+
+### Testing
+
+Phase 2 test results are in [`docs/phase2/ROCH_Phase2_Data.xlsx`](docs/phase2/ROCH_Phase2_Data.xlsx), and the full list of changes for each round is in [`docs/phase2/ROCH_Phase2_Change_Log.pdf`](docs/phase2/ROCH_Phase2_Change_Log.pdf).
+
+| Test | Result |
+|---|---|
+| HTTP command timing (Flask development server vs Waitress) | Send rate rose from about 3 to about 9.3 commands per second; median request time fell from 347 ms to about 18 ms |
+| Glove HTTP command timing | WHEELS lines arrive about every 83 ms while driving; idle pings about every 2 s |
+| Glove Wi-Fi link quality | With the antenna: 0% ping loss, 10.6 ms average. Without it: 8.7% loss |
+| Pitch and roll calibration | Pitch of ±45° maps to ±100 speed; roll of 0 to 70° maps to 0 to 100 turn |
+| Glove-to-HUD handover (serial and HTTP) | Control flips cleanly, and the HUD gets a conflict while the glove is active |
+| Reconnect (serial, and serial with HTTP) | Glove, car and both links drop and return without restarting the app; the HTTP link takes about 5 s |
+| Serial fallback and HTTP priority | Falls back to serial when Wi-Fi is down; HTTP wins when both are live |
+| Pitch button emergency stop | Wheels go to zero while held, overriding the safety button and the 1 s hold |
+| Safety button hold | The last command repeats for 1 s after release, then one stop is sent |
+| Obstacle stop, hysteresis, watchdog | Passed. At max speed the car stops at 23 cm from the obstacle (the 25 cm stop point is a buffer, since the car has momentum). It blocks at 25 cm or less, clears above 30 cm, and stops within about 0.5 s of commands ending |
+| Keyboard ramps and X dead stop | 1 s ramp, 2x braking, and an immediate stop |
+| IMU orientation and button driving | Pitch down drives forward and wrist right turns right; driving with the safety button held |
+| Component test sketches (IMU, vibration motor, buttons) | Passed on the glove |
+
+Command latency (end to end) and network throttling tests are planned for Phase 3.
 
 ### Safety
 
@@ -135,8 +173,10 @@ These are the designed safety behaviors of the Phase 2 system. They are describe
 | Car | Stops both motors if no command arrives within 500 ms |
 | Car | Stops forward motion when an obstacle is 25 cm or closer, and clears at 30 cm |
 
+## Development History
+
+Earlier development versions of the code, organized by phase and round, are archived in a [Google Drive folder](https://drive.google.com/drive/folders/1LhveoIxMBXKmOTSKXsggR_EjLncx9t-4).
+
 ## Roadmap
 
-1. Finish Phase 2: remaining glove tests (IMU orientation and button driving) and hardware.
-2. Integrate the glove, backend, HUD, and car as one system and record demonstrations.
-3. Define the next phase.
+1. Phase 3: end-to-end command latency and network throttling tests, plus defining the next devices.
