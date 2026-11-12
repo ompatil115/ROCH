@@ -129,13 +129,10 @@ Full specifications are in [`devices/Glove/docs/protocol.md`](devices/Glove/docs
 
 ### Demonstrations
 
-Three videos cover the full Phase 2 system. The links will be added here.
-
 | Video | Shows |
 |---|---|
-| Glove driving | The glove driving the car on a stand with the HUD on a monitor behind it: pitch and roll control, the roll/safety button, the pitch-button emergency stop, the 1 s hold, and the proximity stop |
-| Keyboard driving | W, A, S and D with the 1 s ramp, faster braking on the opposite key, the X dead stop, and control switching between the keyboard and the glove |
-| Link handoff | The HUD status strip with both glove links, the switch between HTTP and serial in both directions, and the vibration motor responding to the car's proximity |
+| [Glove V1 Drive Demo](https://youtu.be/q82pCMLTnlQ) | The glove driving the car on a stand with the HUD on a monitor behind it: pitch and roll control, the roll/safety button, the pitch-button emergency stop, the 1 s hold, and the proximity stop |
+| [HUD V2 Keyboard Drive Demo](https://youtu.be/Pk3QCdzDuiY) | W, A, S and D with the 1 s ramp, faster braking on the opposite key, the X dead stop, and control switching between the keyboard and the glove |
 
 ### Testing
 

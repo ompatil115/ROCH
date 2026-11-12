@@ -78,6 +78,8 @@ The HUD drives from a pad or the keyboard:
 - **Blocked:** forward motion is ignored while the car reports blocked.
 - **Glove takeover:** the HUD pad turns red and its controls are disabled while the glove is driving, and the HUD takes over again when the glove stops sending.
 
+Demo video: [HUD V2 Keyboard Drive Demo](https://youtu.be/Pk3QCdzDuiY)
+
 ## Control Arbitration
 
 The glove has control while it is sending `WHEELS` lines, and for 1 s after the last one (`GLOVE_TIMEOUT`). Outside that window the browser can drive. `/state` reports `gesture` as 1 while the glove has control.

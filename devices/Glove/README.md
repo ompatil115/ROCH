@@ -78,4 +78,4 @@ Start the shared backend as described in [`backend/README.md`](../../backend/REA
 
 Glove V1 firmware, the Wi-Fi link, the serial fallback, the handover between the two, the emergency-stop button, the IMU orientation, and button driving have all been tested. Results are in [`docs/phase2/`](../../docs/phase2/) at the repository root.
 
-Demonstration videos are shown in the [root README](../../README.md#demonstrations).
+Demo video: [Glove V1 Drive Demo](https://youtu.be/q82pCMLTnlQ). More are in the [root README](../../README.md#demonstrations).
