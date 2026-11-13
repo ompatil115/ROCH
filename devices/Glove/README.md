@@ -58,7 +58,7 @@ Each button connects between its pin and GND, using the ESP32's internal pull-up
 ## Setup
 
 **Firmware**
-1. Open the Glove V1 sketch in [`firmware/`](firmware/) in the Arduino IDE
+1. Open the Glove V1 sketch in [`firmware/Glove_V1/`](firmware/Glove_V1/) in the Arduino IDE
 2. Install the ESP32 board package (no extra libraries are needed)
 3. Copy `secrets.h.example` to `secrets.h` in the same folder (`firmware/Glove_V1/`) and fill in `WIFI_SSID` and `WIFI_PASS`. `secrets.h` is git-ignored and must not be committed
 4. Set `PI_HOST` in the sketch to the Raspberry Pi's IP address. Reserve a fixed IP for the Pi on your router so it does not change
@@ -78,4 +78,4 @@ Start the shared backend as described in [`backend/README.md`](../../backend/REA
 
 Glove V1 firmware, the Wi-Fi link, the serial fallback, the handover between the two, the emergency-stop button, the IMU orientation, and button driving have all been tested. Results are in [`docs/phase2/`](../../docs/phase2/) at the repository root.
 
-Demo video: [Glove V1 Drive Demo](https://youtu.be/q82pCMLTnlQ). More are in the [root README](../../README.md#demonstrations).
+Demo videos: [Glove V1 Drive Demo](https://youtu.be/q82pCMLTnlQ) and [HUD V2 Glove Connection Demo](https://youtu.be/KCKdDAnIDC4) (Wi-Fi drop, serial fallback and reconnect). More are in the [root README](../../README.md#demonstrations).

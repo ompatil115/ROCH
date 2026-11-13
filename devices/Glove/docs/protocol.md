@@ -54,4 +54,4 @@ PROX:<dist>,<blocked>,
 - **Command watchdog:** the car stops both motors if no wheel command arrives within 500 ms, and the backend drops glove control 1 s after the last command. Both run off the glove, so they cover a lost link.
 - **Proximity stop:** the car's firmware stops forward motion when an obstacle is 25 cm or closer, regardless of what the glove sends.
 
-These are designed behaviors, not a verified safety guarantee.
+These behaviors were tested in Phase 2 (see [`docs/phase2/`](../../../docs/phase2/)). ROCH is a hobby project, not a certified safety system.

@@ -69,6 +69,8 @@ To view the V1 state of the repository, run `git checkout car-v1.0`. Because tag
 
 ## Status
 
+Demo (V1.5): [HUD V2 Car Connection and Proximity Demo](https://youtu.be/Pz4E9ZdQ7V8) shows the car unplugged and replugged and the distance readout on the HUD.
+
 **V1** is complete: all three subsystems (light, move, scan) work end to end, browser to hardware and back. V1 ran against a hardware constraint: attaching the servo library consumes a timer the Uno needs for PWM on two pins, leaving too few PWM-capable pins for full RGB and full variable-speed control in both directions. See `docs/architecture.md` for the tradeoff and what V1 scoped out as a result.
 
-**V1.5** car firmware is complete. The scanning servo is no longer used, so that timer constraint no longer applies, and the car takes left and right wheel commands from the glove and browser. Glove V1, Backend V2, and HUD V2 work with it; full-system integration and demonstrations are still to do.
+**V1.5** car firmware is complete. The scanning servo is no longer used, so that timer constraint no longer applies, and the car takes left and right wheel commands from the glove and browser. Glove V1, Backend V2, and HUD V2 work with it, and the full system was tested and demonstrated in Phase 2.

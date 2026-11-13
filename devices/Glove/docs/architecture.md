@@ -55,4 +55,4 @@ Buttons connect between the pin and GND and use `INPUT_PULLUP`. The LiPo battery
 
 - **Schematic:** [`media/schematic.pdf`](media/schematic.pdf) ([KiCad source](media/Glove_V1.kicad_sch))
 - **Build photo:** [`media/glove-image.pdf`](media/glove-image.pdf)
-- **Demonstration video:** [Glove V1 Drive Demo](https://youtu.be/q82pCMLTnlQ) (more in the [root README](../../../README.md#demonstrations))
+- **Demonstration videos:** [Glove V1 Drive Demo](https://youtu.be/q82pCMLTnlQ) and [HUD V2 Glove Connection Demo](https://youtu.be/KCKdDAnIDC4) (more in the [root README](../../../README.md#demonstrations))

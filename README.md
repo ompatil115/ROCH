@@ -129,10 +129,14 @@ Full specifications are in [`devices/Glove/docs/protocol.md`](devices/Glove/docs
 
 ### Demonstrations
 
+Four videos cover the Phase 2 system.
+
 | Video | Shows |
 |---|---|
-| [Glove V1 Drive Demo](https://youtu.be/q82pCMLTnlQ) | The glove driving the car on a stand with the HUD on a monitor behind it: pitch and roll control, the roll/safety button, the pitch-button emergency stop, the 1 s hold, and the proximity stop |
-| [HUD V2 Keyboard Drive Demo](https://youtu.be/Pk3QCdzDuiY) | W, A, S and D with the 1 s ramp, faster braking on the opposite key, the X dead stop, and control switching between the keyboard and the glove |
+| [Glove V1 Drive Demo](https://youtu.be/q82pCMLTnlQ) | The glove driving the car on a stand with the HUD on a monitor behind it: pitching and rolling in each direction, zeroing with the buttons, the car stopping 1 s after the roll/safety button is released, and the pitch button overriding that 1 s hold as an emergency stop |
+| [HUD V2 Keyboard Drive Demo](https://youtu.be/Pk3QCdzDuiY) | W, A, S and D and the arrow keys with the 1 s ramp and faster braking on the opposite key, the X dead stop, the mouse pad overriding the keyboard, the dead stop overriding the mouse, and the glove overriding both keyboard and mouse until about 1 s after it stops |
+| [HUD V2 Glove Connection Demo](https://youtu.be/KCKdDAnIDC4) | The glove driving, then its Wi-Fi switched off: the HUD drops the HTTP link after about 5 s, shows the glove on serial only, and the HTTP link returns about 5 s after Wi-Fi is back |
+| [HUD V2 Car Connection and Proximity Demo](https://youtu.be/Pz4E9ZdQ7V8) | The car unplugged and replugged, and how the HUD shows it, plus the distance and proximity readout from the sensor, including the stop and clear hysteresis |
 
 ### Testing
 
@@ -158,7 +162,7 @@ Command latency (end to end) and network throttling tests are planned for Phase 
 
 ### Safety
 
-These are the designed safety behaviors of the Phase 2 system. They are described as designed, not as a verified safety guarantee.
+These are the safety behaviors of the Phase 2 system, tested as listed in [Testing](#testing). ROCH is a hobby project, not a certified safety system.
 
 | Layer | Behavior |
 |---|---|

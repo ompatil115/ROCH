@@ -75,10 +75,12 @@ The browser HUD (`templates/index_V2.html`) polls `/state` every 100 ms and `/st
 The HUD drives from a pad or the keyboard:
 - **W, A, S, D or the arrow keys:** speed and turn ramp up over 1 s, and pressing the opposite key brakes twice as fast.
 - **X:** dead stop. Holding it keeps the car stopped and ignores the drive keys.
+- **Mouse pad:** dragging the pad overrides the keyboard.
+- **Priority:** the glove overrides keyboard and mouse, the X dead stop overrides the mouse, and the mouse overrides the keyboard.
 - **Blocked:** forward motion is ignored while the car reports blocked.
-- **Glove takeover:** the HUD pad turns red and its controls are disabled while the glove is driving, and the HUD takes over again when the glove stops sending.
+- **Glove takeover:** the HUD pad turns red and its controls are disabled while the glove is driving, and the HUD takes over again about 1 s after the glove stops sending.
 
-Demo video: [HUD V2 Keyboard Drive Demo](https://youtu.be/Pk3QCdzDuiY)
+Demo videos: [HUD V2 Keyboard Drive Demo](https://youtu.be/Pk3QCdzDuiY), [HUD V2 Glove Connection Demo](https://youtu.be/KCKdDAnIDC4) (glove link status and reconnects), and [HUD V2 Car Connection and Proximity Demo](https://youtu.be/Pz4E9ZdQ7V8) (car link status and the distance readout).
 
 ## Control Arbitration
 
@@ -99,7 +101,7 @@ Command and telemetry formats are in [`devices/Car/docs/protocol.md`](../devices
 
 ## Safety Behavior
 
-Designed behavior on the backend side. Car and glove limits are in their own READMEs.
+Backend-side safety behavior, tested in Phase 2 (see [`docs/phase2/`](../docs/phase2/)). Car and glove limits are in their own READMEs.
 
 - Wheel values are clamped before they reach the car.
 - The glove takes priority over the browser, and `/wheels` is refused (409) while it is driving.
