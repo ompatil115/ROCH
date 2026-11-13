@@ -63,7 +63,7 @@ Connect the Arduino to the Pi via USB, then start the shared backend as describe
 | Version | Description | Git tag |
 |---|---|---|
 | V1 | Browser control, lighting, 180° scanning | `car-v1.0`, `hud-v1.0` |
-| V1.5 | Glove driving, wheel-based protocol, proximity telemetry | not yet tagged |
+| V1.5 | Glove driving, wheel-based protocol, proximity telemetry | `car-v1.5` |
 
 To view the V1 state of the repository, run `git checkout car-v1.0`. Because tags capture the whole repository, this also shows Backend V1 and HUD V1. Car V1.5 belongs to Phase 2, together with Glove V1, Backend V2, and HUD V2.
 

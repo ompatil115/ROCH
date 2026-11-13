@@ -72,7 +72,7 @@ Start the shared backend as described in [`backend/README.md`](../../backend/REA
 
 | Version | Description | Git tag |
 |---|---|---|
-| V1 | IMU pitch and roll control with press-to-drive safety, HTTP primary and serial fallback, proximity haptics | not yet tagged |
+| V1 | IMU pitch and roll control with press-to-drive safety, HTTP primary and serial fallback, proximity haptics | `glove-v1.0` |
 
 ## Status
 

@@ -48,7 +48,7 @@ Each backend and HUD version has its own file (`app.py` and `templates/index.htm
 | Phase | Versions | Tags |
 |---|---|---|
 | Phase 1 | Car V1, HUD V1, Backend V1 | `car-v1.0`, `hud-v1.0`, `backend-v1.0` (all on the same commit) |
-| Phase 2 | Glove V1, Car V1.5, Backend V2, HUD V2 | Tags will be added as each version is finalized |
+| Phase 2 | Glove V1, Car V1.5, Backend V2, HUD V2 | `glove-v1.0`, `car-v1.5`, `backend-v2.0`, `hud-v2.0` (all on the same commit) |
 
 ## Phase 1: Car V1 and HUD V1
 

@@ -115,4 +115,4 @@ Each version has its own backend and HUD file (see the table at the top), and gi
 | Phase | Version | Tag |
 |---|---|---|
 | Phase 1 | Backend V1 | `backend-v1.0` |
-| Phase 2 | Backend V2 | Tag will be added when finalized |
+| Phase 2 | Backend V2 | `backend-v2.0` (HUD V2 is tagged `hud-v2.0`) |
